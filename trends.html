@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d5c63">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Trends — TravelConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap">
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/home.css"/>
+  <link rel="stylesheet" href="css/analytics.css"/>
+</head>
+<body>
+
+<nav id="navbar" class="navbar"></nav>
+
+<main class="container">
+  <div class="section-head">
+    <div>
+      <div class="chip mb-8">🔥 Trending</div>
+      <h2 id="trends-title">What's moving on TravelConnect</h2>
+    </div>
+    <div id="trends-clear-tag"></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1.2fr 1fr; gap:24px" id="trends-layout">
+    <section>
+      <h3 style="font-size:20px" class="mb-16" id="posts-title">Viral posts</h3>
+      <div id="viral-posts"></div>
+    </section>
+
+    <aside>
+      <h3 style="font-size:20px" class="mb-16">Trending hashtags</h3>
+      <div id="hashtag-list"></div>
+
+      <h3 style="font-size:20px" class="mb-16 mt-32">Trending destinations</h3>
+      <div id="dest-trending"></div>
+    </aside>
+  </div>
+</main>
+
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script src="js/posts.js"></script>
+<script>
+  renderNavbar('trends');
+  const tag = qs('tag');
+
+  if (tag) {
+    document.getElementById('trends-title').innerHTML = `Posts tagged <span style="color:var(--primary)">#${escapeHtml(tag)}</span>`;
+    document.getElementById('trends-clear-tag').innerHTML =
+      `<a href="trends.html" class="btn btn-secondary btn-sm">← All trends</a>`;
+    document.getElementById('posts-title').textContent = 'Recent posts';
+  }
+
+  // Viral posts (or filtered by tag)
+  const viral = tag ? API.listPosts({ hashtag: tag }) : API.trendingPosts(6);
+  const viralEl = document.getElementById('viral-posts');
+  if (!viral.length) {
+    viralEl.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h3>Nothing here</h3></div>`;
+  } else {
+    viralEl.innerHTML = viral.map(renderPost).join('');
+    wirePostActions(viralEl);
+  }
+
+  // Hashtag list — bar chart
+  const tags = API.trendingHashtags(10);
+  const maxTag = Math.max(1, ...tags.map(t => t.count));
+  document.getElementById('hashtag-list').innerHTML = `
+    <div class="card card-body">
+      ${tags.map(t => `
+        <div class="hashtag-item" onclick="location.href='trends.html?tag=${t.tag}'">
+          <div style="flex:1">
+            <strong>#${t.tag}</strong>
+            <div style="height:6px; background:var(--surface-alt); border-radius:3px; margin-top:4px;">
+              <div style="height:100%; width:${(t.count / maxTag * 100).toFixed(0)}%; background:linear-gradient(90deg, var(--primary), var(--accent)); border-radius:3px"></div>
+            </div>
+          </div>
+          <span style="margin-left:12px">${t.count}</span>
+        </div>
+      `).join('') || '<p class="muted text-sm">No hashtags yet</p>'}
+    </div>
+  `;
+
+  // Trending destinations
+  const trends = API.trendingDestinations(6);
+  document.getElementById('dest-trending').innerHTML = trends.length
+    ? trends.map((t, i) => `
+      <div class="trending-item">
+        <div class="num">${i+1}</div>
+        <img src="${escapeHtml(t.dest.image)}" style="width:60px;height:60px;object-fit:cover;border-radius:var(--radius-sm)"
+             onerror="this.style.display='none'">
+        <div class="info">
+          <h4>${escapeHtml(t.dest.name)}</h4>
+          <div class="stat">📍 ${escapeHtml(t.dest.country)} · Score ${t.score.toFixed(1)}</div>
+        </div>
+        <div class="fire">${i === 0 ? '🔥' : i === 1 ? '📈' : ''}</div>
+      </div>
+    `).join('')
+    : '<p class="muted text-sm">No trending destinations yet</p>';
+</script>
+
+</body>
+</html>

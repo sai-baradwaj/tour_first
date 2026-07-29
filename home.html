@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d5c63">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Feed — TravelConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap">
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/home.css"/>
+</head>
+<body>
+
+<nav id="navbar" class="navbar"></nav>
+
+<main class="container">
+  <div class="feed-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="feed-side">
+      <div class="side-card" id="side-me"></div>
+      <div class="side-card">
+        <h4>Categories</h4>
+        <div id="side-categories"></div>
+      </div>
+    </aside>
+
+    <!-- CENTER FEED -->
+    <section>
+      <div class="row-between mb-16">
+        <div class="row" style="gap:8px">
+          <button class="btn btn-secondary btn-sm feed-filter active" data-filter="all">All</button>
+          <button class="btn btn-secondary btn-sm feed-filter" data-filter="following">Following</button>
+          <button class="btn btn-secondary btn-sm feed-filter" data-filter="saved">Saved</button>
+        </div>
+        <div class="muted text-sm" id="feed-count"></div>
+      </div>
+
+      <div id="composer-container"></div>
+      <div id="feed"><div class="loader"></div></div>
+    </section>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="feed-side">
+      <div class="side-card">
+        <h4>Who to follow</h4>
+        <ul class="side-list" id="side-follow"></ul>
+      </div>
+      <div class="side-card">
+        <h4>Trending hashtags</h4>
+        <div id="side-tags"></div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script src="js/posts.js"></script>
+<script>
+(function initHomePage () {
+  renderNavbar('home');
+  const me = API.currentUser();
+  if (!me) {
+    window.location.replace('login.html');
+    return; // stop the rest of this init; no console noise
+  }
+
+  // Left sidebar - me card
+  document.getElementById('side-me').innerHTML = `
+    <div class="row" style="gap:12px">
+      ${renderAvatar(me)}
+      <div>
+        <strong>${escapeHtml(me.name)}</strong>
+        <div class="muted text-sm">@${escapeHtml(me.username)}</div>
+      </div>
+    </div>
+    <div class="row mt-16" style="gap:16px">
+      <div><strong>${API.followerCount(me.id)}</strong><div class="muted text-sm">followers</div></div>
+      <div><strong>${API.followingCount(me.id)}</strong><div class="muted text-sm">following</div></div>
+    </div>
+    <a class="btn btn-secondary btn-block btn-sm mt-16" href="profile.html?u=${me.username}">View profile</a>
+  `;
+
+  // Categories side
+  document.getElementById('side-categories').innerHTML = CATEGORIES.map(c => `
+    <a class="row" style="gap:8px;padding:6px 0;font-size:14px" href="explore.html?cat=${c.id}">
+      <span>${c.emoji}</span><span>${c.name}</span>
+    </a>
+  `).join('');
+
+  // Who to follow
+  const wtf = API.whoToFollow(4);
+  document.getElementById('side-follow').innerHTML = wtf.length ? wtf.map(u => `
+    <li class="side-user" data-user="${u.id}">
+      ${renderAvatar(u, 'avatar-sm')}
+      <div style="flex:1">
+        <strong>${escapeHtml(u.name)}</strong>
+        <span>@${escapeHtml(u.username)}</span>
+      </div>
+      <button class="btn btn-primary" data-follow="${u.id}">Follow</button>
+    </li>
+  `).join('') : '<li class="muted text-sm">You follow everyone 🎉</li>';
+
+  document.getElementById('side-follow').addEventListener('click', e => {
+    const btn = e.target.closest('[data-follow]');
+    if (!btn) return;
+    API.follow(btn.dataset.follow);
+    btn.textContent = 'Following';
+    btn.className = 'btn btn-secondary';
+    toast('Following');
+  });
+
+  // Trending hashtags
+  const tags = API.trendingHashtags(6);
+  document.getElementById('side-tags').innerHTML = tags.map(t => `
+    <div class="hashtag-item" onclick="location.href='trends.html?tag=${t.tag}'">
+      <strong>#${t.tag}</strong><span>${t.count} posts</span>
+    </div>
+  `).join('') || '<p class="muted text-sm">No hashtags yet</p>';
+
+  // Feed
+  let currentFilter = 'all';
+  const feedEl = document.getElementById('feed');
+
+  function refreshFeed() {
+    let posts;
+    if (currentFilter === 'following') posts = API.listPosts({ followingOnly: true });
+    else if (currentFilter === 'saved') posts = API.getSavedPosts(me.id);
+    else posts = API.listPosts();
+
+    document.getElementById('feed-count').textContent = posts.length + ' posts';
+    if (!posts.length) {
+      feedEl.innerHTML = `<div class="empty">
+        <div class="empty-icon">🗺️</div>
+        <h3>Nothing here yet</h3>
+        <p>${currentFilter === 'following' ? 'Follow more travelers to see their posts.' :
+          currentFilter === 'saved' ? 'Tap the bookmark icon on any post to save it here.' :
+          'Be the first to share a story.'}</p>
+      </div>`;
+      return;
+    }
+    feedEl.innerHTML = posts.map(renderPost).join('');
+  }
+  refreshFeed();
+  wirePostActions(feedEl);
+  wireComposer(() => refreshFeed());
+
+  // Filter tabs
+  document.querySelectorAll('.feed-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.feed-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      refreshFeed();
+    });
+  });
+
+  // Deep-link support: /home.html?p=<postId> scrolls to that post if it exists
+  const targetPost = qs('p');
+  if (targetPost) {
+    setTimeout(() => {
+      const el = document.querySelector(`[data-post-id="${CSS.escape(targetPost)}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.transition = 'box-shadow .3s';
+        el.style.boxShadow = '0 0 0 3px rgba(224, 164, 88, .5)';
+        setTimeout(() => { el.style.boxShadow = ''; }, 2000);
+      }
+    }, 100);
+  }
+})();
+</script>
+
+</body>
+</html>

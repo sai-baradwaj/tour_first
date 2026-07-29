@@ -1,0 +1,117 @@
+/* ==========================================================
+   TravelConnect – Analytics + Trends styles
+   ========================================================== */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.stat-card .label {
+  font-size: 12px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+.stat-card .value {
+  font-family: 'Fraunces', serif;
+  font-size: 32px; color: var(--primary);
+  line-height: 1;
+}
+.stat-card .delta {
+  font-size: 12px; color: var(--success);
+  margin-top: 6px;
+}
+
+.analytics-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+}
+@media (max-width: 1000px) { .analytics-layout { grid-template-columns: 1fr; } }
+
+#cy {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  height: 560px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+.table thead th {
+  background: var(--surface-alt);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12px; text-transform: uppercase;
+  color: var(--text-muted); letter-spacing: .05em;
+  font-weight: 600;
+}
+.table td {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+}
+.table tr:hover td { background: #fbf9f5; }
+.table .rank {
+  font-family: 'Fraunces', serif;
+  font-size: 18px; color: var(--primary);
+}
+
+.trending-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+.trending-item .num {
+  font-family: 'Fraunces', serif;
+  font-size: 26px; color: var(--primary);
+  min-width: 40px;
+}
+.trending-item .info { flex: 1; }
+.trending-item h4 { font-size: 16px; margin-bottom: 2px; }
+.trending-item .stat { font-size: 12px; color: var(--text-muted); }
+.trending-item .fire { font-size: 24px; }
+
+.bar-chart {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 200px;
+  padding: 10px 0;
+}
+.bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 6px 6px 0 0;
+  min-height: 4px;
+  position: relative;
+  transition: opacity .15s;
+}
+.bar:hover { opacity: .8; }
+.bar .bar-label {
+  position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: var(--text-muted);
+  white-space: nowrap;
+}
+.bar .bar-value {
+  position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: var(--text); font-weight: 600;
+}
+
+/* Report table (admin) */
+.report-row-actions { display: flex; gap: 6px; }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d5c63">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>TravelConnect — where travel stories connect the world</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono&display=swap">
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/home.css"/>
+</head>
+<body>
+
+<nav id="navbar" class="navbar"></nav>
+
+<section class="hero">
+  <h1>Where travel stories <em>connect</em> the world.</h1>
+  <p>Share your journeys, discover destinations across 8 categories, join communities of travelers, and see how your posts ripple through the network.</p>
+  <div class="hero-cta">
+    <a href="register.html" class="btn btn-primary">Create your account</a>
+    <a href="explore.html" class="btn btn-secondary">Explore destinations</a>
+  </div>
+
+  <div class="hero-images">
+    <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&h=440&fit=crop" alt="Patagonia">
+    <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=500&h=440&fit=crop" alt="Kyoto">
+    <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=500&h=440&fit=crop" alt="Maldives">
+    <img src="https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=500&h=440&fit=crop" alt="Serengeti">
+  </div>
+</section>
+
+<section class="container">
+  <div class="section-head">
+    <div>
+      <div class="chip mb-8">Everything on one platform</div>
+      <h2>Post. Explore. Belong.</h2>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature">
+      <div class="feature-icon">📸</div>
+      <h3>Post your journeys</h3>
+      <p>Photos, captions, hashtags. Likes, saves, shares and comments — all the social you expect.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🗺️</div>
+      <h3>8 categories to explore</h3>
+      <p>Adventures · Nature · Food · Culture · Photography · Beaches · Wildlife · Mountains.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📚</div>
+      <h3>Your travel diary</h3>
+      <p>Track places you've visited, your bucket list, food discoveries and adventures — all on your profile.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">👥</div>
+      <h3>Join communities</h3>
+      <p>Solo travelers, foodies, alpinists, photographers — find your people.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📈</div>
+      <h3>Trends & propagation</h3>
+      <p>See which posts are viral, which hashtags are moving, which destinations are on the rise.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🕸️</div>
+      <h3>Social graph analytics</h3>
+      <p>Interactive Cytoscape graph of the follow network with influencer ranking.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="section-head">
+    <div>
+      <div class="chip chip-accent mb-8">Try it in 5 seconds</div>
+      <h2>Sample accounts</h2>
+    </div>
+    <a href="login.html">Log in →</a>
+  </div>
+  <div class="grid grid-3">
+    <div class="card card-body">
+      <strong>wanderer_sai</strong>
+      <div class="muted text-sm mt-4">Travel influencer · 35 countries</div>
+      <div class="mt-16"><span class="chip">password123</span></div>
+    </div>
+    <div class="card card-body">
+      <strong>nina.frames</strong>
+      <div class="muted text-sm mt-4">Photographer · golden hour</div>
+      <div class="mt-16"><span class="chip">password123</span></div>
+    </div>
+    <div class="card card-body">
+      <strong>foodie_arjun</strong>
+      <div class="muted text-sm mt-4">Street food explorer</div>
+      <div class="mt-16"><span class="chip">password123</span></div>
+    </div>
+    <div class="card card-body">
+      <strong>admin</strong>
+      <div class="muted text-sm mt-4">Full moderation access</div>
+      <div class="mt-16"><span class="chip">password123</span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  Made with ❤️ · <strong>TravelConnect</strong> · Social Media Trend Propagation and Community Detection Using Graph Analytics
+</footer>
+
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderNavbar('landing');
+</script>
+
+</body>
+</html>

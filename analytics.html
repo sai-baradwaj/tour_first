@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d5c63">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Analytics — TravelConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap">
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/analytics.css"/>
+  <!-- Cytoscape via jsDelivr (more reliable CDN); unpkg used as fallback below -->
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+</head>
+<body>
+
+<nav id="navbar" class="navbar"></nav>
+
+<main class="container">
+  <div class="section-head">
+    <div>
+      <div class="chip mb-8">🕸️ Graph analytics</div>
+      <h2>Social graph & influence</h2>
+    </div>
+  </div>
+
+  <!-- Platform stats -->
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <!-- Graph + influencers -->
+  <div class="analytics-layout">
+    <div>
+      <h3 style="font-size:20px" class="mb-16">Follow network</h3>
+      <div id="cy"></div>
+      <p class="muted text-sm mt-8">Node size = influence · edge = follow · drag to explore</p>
+    </div>
+    <aside>
+      <h3 style="font-size:20px" class="mb-16">Top influencers</h3>
+      <table class="table">
+        <thead><tr><th>#</th><th>User</th><th style="text-align:right">Score</th></tr></thead>
+        <tbody id="influencer-tbody"></tbody>
+      </table>
+
+      <h3 style="font-size:20px" class="mb-16 mt-32">Communities detected</h3>
+      <div id="communities-detected"></div>
+    </aside>
+  </div>
+</main>
+
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderNavbar('analytics');
+
+  // Platform stats
+  const stats = API.platformStats();
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card"><div class="label">Users</div><div class="value">${stats.users}</div></div>
+    <div class="stat-card"><div class="label">Posts</div><div class="value">${stats.posts}</div></div>
+    <div class="stat-card"><div class="label">Destinations</div><div class="value">${stats.destinations}</div></div>
+    <div class="stat-card"><div class="label">Communities</div><div class="value">${stats.communities}</div></div>
+    <div class="stat-card"><div class="label">Total likes</div><div class="value">${stats.likes}</div></div>
+    <div class="stat-card"><div class="label">Comments</div><div class="value">${stats.comments}</div></div>
+  `;
+
+  // Cytoscape graph
+  // Guard: if the CDN failed to load the library, show a helpful message
+  // and try to inject a fallback script instead of leaving the box empty.
+  function renderGraph () {
+    const cyEl = document.getElementById('cy');
+    if (typeof cytoscape === 'undefined') {
+      cyEl.innerHTML = `
+        <div class="empty" style="padding:80px 20px">
+          <div class="empty-icon">🕸️</div>
+          <h3>Loading graph library…</h3>
+          <p>If this doesn't finish, check your network connection.</p>
+        </div>`;
+      // Try the backup CDN once
+      if (!window._tcCyFallback) {
+        window._tcCyFallback = true;
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js';
+        s.onload = renderGraph;
+        s.onerror = () => {
+          cyEl.innerHTML = `<div class="empty" style="padding:80px 20px">
+            <div class="empty-icon">⚠️</div>
+            <h3>Couldn't load graph library</h3>
+            <p>Your network appears to be blocking CDN scripts.</p></div>`;
+        };
+        document.head.appendChild(s);
+      }
+      return;
+    }
+    cyEl.innerHTML = ''; // clear any placeholder text
+    _drawCyGraph(cyEl);
+  }
+  function _drawCyGraph (cyEl) {
+  const graph = API.socialGraph();
+  cytoscape({
+    container: cyEl,
+    elements: [...graph.nodes, ...graph.edges],
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'background-color': ele => {
+            const r = ele.data('role');
+            const map = { admin:'#c0392b', influencer:'#0d5c63', photographer:'#8e44ad',
+              foodie:'#e0a458', wildlife:'#d35400', mountaineer:'#2c3e50',
+              coastal:'#3498db', culture:'#8e44ad', traveler:'#6b7a7c' };
+            return map[r] || '#0d5c63';
+          },
+          'width':  ele => 22 + Math.min(60, Math.sqrt(ele.data('score')) * 3),
+          'height': ele => 22 + Math.min(60, Math.sqrt(ele.data('score')) * 3),
+          'label': 'data(label)',
+          'font-size': 11,
+          'font-family': 'Inter, sans-serif',
+          'color': '#1c2a2c',
+          'text-margin-y': -10,
+          'border-width': 2,
+          'border-color': '#ffffff',
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 1.4,
+          'line-color': '#c4b998',
+          'target-arrow-color': '#c4b998',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier',
+          'opacity': 0.55,
+        }
+      },
+      { selector: 'node:selected', style: { 'border-color': '#e0a458', 'border-width': 4 } }
+    ],
+    layout: { name: 'cose', animate: false, padding: 20, nodeRepulsion: 8000, idealEdgeLength: 90 },
+  });
+  }
+  renderGraph();
+
+  // Influencer table
+  const ranking = API.influencerRanking(10);
+  document.getElementById('influencer-tbody').innerHTML = ranking.map((u, i) => `
+    <tr onclick="location.href='profile.html?u=${escapeHtml(u.username)}'" style="cursor:pointer">
+      <td class="rank">${i+1}</td>
+      <td>
+        <div class="row" style="gap:8px">
+          ${renderAvatar(u, 'avatar-sm')}
+          <div>
+            <strong>${escapeHtml(u.name)}</strong>
+            <div class="muted text-sm">@${escapeHtml(u.username)} · ${u.followers} followers</div>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:right; font-weight:600; color:var(--primary)">${u.score}</td>
+    </tr>
+  `).join('');
+
+  // Communities detected
+  const clusters = API.detectCommunities();
+  document.getElementById('communities-detected').innerHTML = clusters.map(c => `
+    <div class="trending-item">
+      <div class="num">${c.size}</div>
+      <div class="info">
+        <h4>${escapeHtml(c.name)}</h4>
+        <div class="stat">Density ${(c.density * 100).toFixed(0)}% · ${c.size} members</div>
+      </div>
+    </div>
+  `).join('');
+</script>
+
+</body>
+</html>

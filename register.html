@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d5c63">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Join — TravelConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap">
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav id="navbar" class="navbar"></nav>
+
+<div class="container-narrow" style="max-width: 520px;">
+  <div class="card card-body" style="padding: 32px;">
+    <div class="center mb-24">
+      <div class="brand-mark" style="width:52px;height:52px;font-size:24px;margin:0 auto 12px;">🌏</div>
+      <h2 style="font-size:26px;">Create your account</h2>
+      <p class="muted text-sm mt-4">Free forever. No credit card. Bring your journeys.</p>
+    </div>
+
+    <form id="register-form" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full name</label>
+          <input type="text" name="name" required placeholder="Ada Lovelace" autocomplete="name"/>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" name="username" required placeholder="ada_travels"
+                 pattern="^[a-zA-Z0-9_\.]{3,20}$"
+                 title="3-20 characters: letters, numbers, underscore or dot"
+                 autocomplete="username"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required placeholder="ada@example.com" autocomplete="email"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" required minlength="6"
+                 placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="form-group">
+          <label>Confirm password</label>
+          <input type="password" name="confirmPassword" required minlength="6"
+                 placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Account type</label>
+        <select name="role" required>
+          <option value="traveler">🎒 Traveler — I want to share and discover</option>
+          <option value="influencer">🌟 Travel influencer</option>
+          <option value="photographer">📷 Photographer</option>
+          <option value="foodie">🍜 Foodie / food explorer</option>
+          <option value="mountaineer">⛰️ Mountaineer</option>
+          <option value="wildlife">🦁 Wildlife enthusiast</option>
+          <option value="culture">🏛️ Culture &amp; slow travel</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+
+    <p class="center muted text-sm mt-24">
+      Already have an account? <a href="login.html" style="color:var(--primary);font-weight:500">Log in</a>
+    </p>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  (function initRegisterPage () {
+    renderNavbar('register');
+
+    // Already signed in? Skip.
+    if (API.currentUser()) {
+      window.location.replace('home.html');
+      return;
+    }
+
+    const form = document.getElementById('register-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function onRegisterSubmit (e) {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const name            = (fd.get('name') || '').trim();
+      const username        = (fd.get('username') || '').trim().toLowerCase();
+      const email           = (fd.get('email') || '').trim();
+      const password        = fd.get('password') || '';
+      const confirmPassword = fd.get('confirmPassword') || '';
+      const role            = fd.get('role') || 'traveler';
+
+      // Client-side validation
+      if (!name || !username || !email || !password || !confirmPassword) {
+        toast('Please fill in every field', 'danger'); return;
+      }
+      if (!/^[a-zA-Z0-9_\.]{3,20}$/.test(username)) {
+        toast('Username must be 3–20 chars (letters, numbers, _ or .)', 'danger'); return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast('Please enter a valid email', 'danger'); return;
+      }
+      if (password.length < 6) {
+        toast('Password must be at least 6 characters', 'danger'); return;
+      }
+      if (password !== confirmPassword) {
+        toast('Passwords do not match', 'danger'); return;
+      }
+
+      try {
+        const user = API.register({ username, name, email, password });
+        // Persist the chosen account type
+        if (role && role !== 'traveler') {
+          API.updateUser(user.id, { role });
+        }
+        toast('Welcome to TravelConnect, ' + user.name, 'success');
+        setTimeout(() => window.location.replace('home.html'), 500);
+      } catch (err) {
+        toast(err.message || 'Registration failed', 'danger');
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
